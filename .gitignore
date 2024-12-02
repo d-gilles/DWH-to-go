@@ -1,0 +1,7 @@
+.env
+.python-version
+.env.bak
+*.txt
+*.tmp
+
+cli/credentials/

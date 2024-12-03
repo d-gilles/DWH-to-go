@@ -30,6 +30,16 @@ get_access_key_from_json() {
     fi
 }
 
+# Function to check if the Access Key exists in the local credentials file
+get_secret_access_key_from_json() {
+    if [ -f "$credentials_file" ]; then
+        jq -r '.AccessKey.SecretAccessKey' "$credentials_file"
+    else
+        echo "None"
+    fi
+}
+
+
 # Main Execution
 echo "** Checking if access key exists for Terraform user..."
 
@@ -65,6 +75,7 @@ elif [[ "$access_key_id_from_aws" != "None" ]]; then
     aws iam delete-access-key --user-name "$AWS_TERRAFORM_USER" --access-key-id "$access_key_id_from_aws"
     rm -f "$credentials_file"
     echo "** Deleted existing access key and credentials file. Creating a new key..."
+    echo "** write to file $credentials_file"
     aws iam create-access-key --user-name "$AWS_TERRAFORM_USER" --output json > "$credentials_file"
     echo "** New access key created and saved to $credentials_file."
     update_env_file "$access_key_id_from_aws"
@@ -79,3 +90,16 @@ fi
 # write access key id to .env 
 access_key_id_from_aws=$(get_access_key_from_aws)
 update_env_file "$access_key_id_from_aws"
+
+# write a file in the format
+echo "** Writing credentials to ~/.aws/credentials..."
+
+echo "[terraform_user]
+aws_access_key_id = $(get_access_key_from_json)
+aws_secret_access_key = $(get_secret_access_key_from_json)" > ~/.aws/cred_terraform
+
+echo "[profile $AWS_TERRAFORM_USER]
+region = $AWS_REGION
+output = json" >  ~/.aws/config_terraform
+
+echo "** Done."

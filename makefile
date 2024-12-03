@@ -75,3 +75,13 @@ snowflake_clean_up:
 	@echo "drop terraform user from snowflake"
 	@snowsql -a $(SNOWFLAKE_ACCOUNT_IDENTIFIER) -u $(SNOWFLAKE_ADMIN) -q \
 		"DROP USER IF EXISTS \"$(SNOWFLAKE_USER)\";"
+
+
+    snowflake = {
+      source  = "Snowflake-Labs/snowflake"
+      version = "~> 0.87"
+    }
+
+	provider "snowflake" {
+  authenticator             = "SNOWFLAKE_JWT"
+}

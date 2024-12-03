@@ -5,3 +5,5 @@
 *.tmp
 
 cli/credentials/
+.terraform/
+.terraform.lock.hcl

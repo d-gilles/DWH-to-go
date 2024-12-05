@@ -7,3 +7,7 @@
 cli/credentials/
 .terraform/
 .terraform.lock.hcl
+.DS_Store
+img/.DS_Store
+data/
+*.tfstate*

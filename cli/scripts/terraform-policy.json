@@ -5,11 +5,21 @@
         "Effect": "Allow",
         "Action": [
           "s3:*",
+          "iam:GetRole",
           "iam:CreateRole",
+          "iam:CreatePolicy",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:ListPolicyVersions",
+          "iam:DeletePolicy",
           "iam:AttachRolePolicy",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
           "iam:PassRole",
           "iam:DeleteRole",
           "iam:DetachRolePolicy",
+          "iam:ListInstanceProfilesForRole",
+          "iam:UpdateAssumeRolePolicy",
           "logs:*",
           "cloudwatch:*"
         ],
@@ -17,4 +27,3 @@
       }
     ]
   }
-  

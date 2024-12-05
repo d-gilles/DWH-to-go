@@ -69,19 +69,28 @@ snowflake_create_Terraform_user:
 .PHONY: setup_snowflake
 setup_snowflake: snowflake_test snowflake_create_Terraform_user
 
-
 .PHONY: snowflake_clean_up
 snowflake_clean_up:
 	@echo "drop terraform user from snowflake"
 	@snowsql -a $(SNOWFLAKE_ACCOUNT_IDENTIFIER) -u $(SNOWFLAKE_ADMIN) -q \
 		"DROP USER IF EXISTS \"$(SNOWFLAKE_USER)\";"
 
+# setup infra
+.PHONY: terraform
+terraform:
+	cd terraform &&	terraform apply -auto-approve
+.PHONY: python
+python:
+	python python/create_aws_snowflake_integration.py
 
-    snowflake = {
-      source  = "Snowflake-Labs/snowflake"
-      version = "~> 0.87"
-    }
 
-	provider "snowflake" {
-  authenticator             = "SNOWFLAKE_JWT"
-}
+# load test data
+.PHONY: test_data
+test_data:
+	python python/load_test_dataset_to_s3.py
+
+
+## clean up
+# if you want to remove everything
+.PHONY: destroy_all
+destroy_all: aws_clean_up snowflake_clean_up

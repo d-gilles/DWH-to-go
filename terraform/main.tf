@@ -8,12 +8,14 @@ terraform {
   }
 }
 
-
 provider "aws" {
-    region    = var.aws_region
-    profile   = var.aws_terraform_user
-    shared_config_files      = ["~/.aws/config_terraform"]
-    shared_credentials_files = ["~/.aws/cred_terraform"]
-  
+    region                      = var.aws_region
+    profile                     = var.aws_terraform_user
+    shared_config_files         = ["~/.aws/config_terraform"]
+    shared_credentials_files    = ["~/.aws/cred_terraform"]
 }
+
+
+
+
 

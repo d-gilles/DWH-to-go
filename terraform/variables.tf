@@ -41,24 +41,5 @@ variable "dynamodb_table_name" {
   default     = "terraform-locks"
 }
 
-locals {
-  bucket_names = [
-    var.s3_backend_bucket_name,
-    var.s3_log_bucket_name,
-    var.s3_data_lake_bucket_name
-  ]
-}
-
-# SNOWFLAKE
-variable "snowflake_account_identifier" {
-  description = "Snowflake account"
-  default     = "snowflake_account"
-}
-
-variable "snowflake_user" {
-    description = "Snowflake user"
-    default     = "snowflake_user"
-}
-
 
   

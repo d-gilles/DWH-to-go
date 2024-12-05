@@ -1,0 +1,20 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:*"
+        ],
+        "Resource": "datalake_arn"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:GetObject",
+          "S3:GetObjectVersion"
+        ],
+        "Resource": "datalake_arn/staging"
+      }
+    ]
+  }

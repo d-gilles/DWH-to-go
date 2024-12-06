@@ -63,6 +63,8 @@ print("** Cleaning the data...")
 df = df[df['InvoiceNo'].astype(str).str.isdigit()]
 df.loc[:,'StockCode'] = df['StockCode'].fillna("").astype(str)
 df.loc[:,'Description'] = df['Description'].fillna("").astype(str)
+df.loc[:,'InvoiceDate'] = pd.to_datetime(df.loc[:,'InvoiceDate'], errors='coerce')
+
 
 # define bucket and name
 print("** Uploading the data to s3...")

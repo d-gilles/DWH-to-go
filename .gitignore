@@ -11,3 +11,5 @@ cli/credentials/
 img/.DS_Store
 data/
 *.tfstate*
+*.ipynb
+__pycache__/

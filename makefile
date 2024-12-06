@@ -47,7 +47,7 @@ snowflake_test:
 	fi
 	@echo "** Initialize connection to Snowflake"
 	@echo "**"
-	@snowsql -a $(SNOWFLAKE_ACCOUNT_IDENTIFIER) -u $(SNOWFLAKE_ADMIN) -q "!exit"; \
+	@snowsql -q "!exit"; \
 	if [ $$? -ne 0 ]; then \
 		echo "** Fehler: Verbindung zu Snowflake konnte nicht hergestellt werden."; \
 		echo "** Überprüfe folgende Punkte:"; \
@@ -72,8 +72,8 @@ setup_snowflake: snowflake_test snowflake_create_Terraform_user
 .PHONY: snowflake_clean_up
 snowflake_clean_up:
 	@echo "drop terraform user from snowflake"
-	@snowsql -a $(SNOWFLAKE_ACCOUNT_IDENTIFIER) -u $(SNOWFLAKE_ADMIN) -q \
-		"DROP USER IF EXISTS \"$(SNOWFLAKE_USER)\";"
+	@snowsql -q \
+		"DROP USER IF EXISTS \"$(SNOWSQL_USER)\";"
 
 # setup infra
 .PHONY: terraform
@@ -84,11 +84,20 @@ python:
 	python python/create_aws_snowflake_integration.py
 
 
-# load test data
-.PHONY: test_data
-test_data:
+# load test data to S3
+.PHONY: aws_load_test_data
+aws_load_test_data:
 	python python/load_test_dataset_to_s3.py
 
+# create a dwh in snowflake
+.PHONY: snowflake_create_dwh
+snowflake_create_dwh:
+	@snowsql -q \
+	"CREATE OR REPLACE  WAREHOUSE ${SNOWFLAKE_WAREHOUSE}  \
+	WAREHOUSE_SIZE = ${SNOWFLAKE_WAREHOUSE_SIZE};"
+
+snowflake_create_db_and_test_date_table: 
+	@envsubst < sql/import_test_data.sql | snowsql -q "$(cat)"
 
 ## clean up
 # if you want to remove everything

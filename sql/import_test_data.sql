@@ -12,7 +12,8 @@ TYPE = PARQUET
 USE_LOGICAL_TYPE = TRUE;
 
 -- create the s3 stage
-create or replace stage s3stage
+
+create or replace stage ECOMMERCE.s3stage
   url = 's3://${PROJECT_NAME}-i${ITERATION}-data-lake/staging/'
   file_format = $SNOWFLAKE_DATABASE_NAME.ECOMMERCE.ECOMMERCEPARQUETFORMAT
   storage_integration = s3_storage_integration;

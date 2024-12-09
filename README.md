@@ -1,87 +1,216 @@
-# Snowflake DWH on AWS
+# DWH to go
 
-Dieses Projekt hat den Zweck eine data warehouse Umgebung einzurichten in der ich verschieden dinge ausprobieren kann, bzw. verschiedene technicken kombiniert einsetzen möchte.
-1. Einrichten eines aws projects und eine rolle zum erstellen der infrastruktur
-2. Einrichtungen der Infrastruktur mit der hilfe von terraform
-3. Eirichten der snowfalke datenbank und Einbinden der raw daten
-4. Einrichten von dbt als transformations werkzeug mit zugriff auf das dwh
-5. modelieren der daten 
-6. einrichten eines containers mit einem BI tool (Metabase)
-6. Beantworten von fragen mittels der Daten und visualisierung in einem dashoard
+A "one-click" data platform.
 
-![architecture](./img/architecture.png)
-# Vorausssetzungen
-- terraform
-- snowflake cli (snowsql)
-- aws cli
-- dbt cloud (account and cli) [install dbt cloud cli](https://docs.getdbt.com/docs/cloud/cloud-cli-installation)
-- dotenv (um Umgebungsvariablen aus der .env datei zu handeln)
+### Introduction
 
+As I’ve delved into data engineering, I’ve experimented with various data warehouse solutions and implemented several projects. A recurring challenge, however, has always been **costs**.
 
-## setup
-- erstelle ein `-env` file um verschiedene variablen abzulegen.   
-    $`mv .env.example .env`
+### The Idea
 
+This project aims to create a reusable, cost-effective setup that leverages free-tier offerings from various providers:
 
-## AWS Account anlegen und per CLI darauf zugreifen
+- **AWS** (12-month Free Tier)
+- **Snowflake** (30-day Free Trial)
+- **dbt Cloud** (Free Developer Plan for one project)
+- **Metabase** (running in a container)
 
-- Ich erstelle in der AWS Console in meinem aws account eine organisation und inerhalb dieser Organisation neuen Account 
-- Nun gewäre ich in meinem `IAM Identity Center` meinem bestehenden User `AdministratorAccess` auf diese neue Konto via sso. 
-- Außerdem kopiere ich unter Einstellungen die `AWS access portal-URL` als `AWS_SSO_START_URL` in meine `.env`
-- Nun logge ich mich über die CLI auf diesem neuen Account ein mit `aws configure sso`. der hierbei verwendete Profilname wird in der `.env` und `AWS_PROFILE` abgelegt, dieser ist nötig um alle aws befehle die aus diesem ordner ausgeführt werden an das richtige konto zu senden. Führe `direnv reload` aus um die umgebungsvariablen zu laden.
-- Nun logge dich in die console (Webseite) des neuen account ein indem du der `AWS_SSO_START_URL` folgst und dich mit deinem bestehenden user auf dem neuen account einloggst.
-- Mit `aws sts get-caller-identity` kannst du aus deinem localen Terminal nun überprüfen, ob du mit der CLI auf das gleich konnt zugriff hast. Webseite und CLI sollten die gleiche Account ID ausgeben.
-Benutze `make get_aws_id` um die ID in deiner `.env` zu speichern.
+### The Solution
 
-Nun haben wir alle nötigen Schritte unternonnem, um via via cli änderungen an unserem aws konto vor zu nehmen. Wir wollen nun einen user anlegen, den terraform benutzen kann um die restliche konfiguration des Kontos vorzunehmen.
+A GitHub repository providing a modular, scalable data platform that can be set up in a few steps. This platform serves as a playground for experimenting with different tools, techniques, and architectures.
 
-dazu führen wir einfach `make setup_aws` aus.
-dieser befehl prüft ob alles nötige vorhanden ist, richtet einen terraform user ein und weist diesem die nötigen berechtigungen zu.
-Damit ist aws bereit für die weiter einrichtuing via terrafrom.
- 
+---
 
-## Schritt 2: Snowflake Account anlegen und über CLI darauf zugreifen
-- Ich erstelle einen neuen account (30 tage testzeitraum). Hierbei ist es wichtig, dass die instance auf AWS und in der richtigen region erstellt wird.
-- Um snowflake zu konfigurieren wollen wir zuerst über das admin konto eine cli verbindung aufbauen. 
-Dazu benötigen wir die den dazu gehörigen account identifier.
-- übernehme folgende Werte in die .env datei: 
+### Architecture Overview
 
-    - `SNOWFLAKE_ACCOUNT` & `SNOWFLAKE_ORGANIZATION` (siehe abbildung)
-    - den benutzernamen, der beim anlegen des accounts verwendet wurde als `SNOWFLAKE_ADMIN` 
-    - und das dazu gehörige Passwort als `SNOWFLAKE_PWD`.  
+![./img/architecture.png](./img/architecture.png)
 
-![SNOWFLAKE_ACCOUNT_IDENTIFIER](./img/snowflake_account.png)
+**Cloud Provider:** AWS
 
-Nun können wir mit folgendem befehl mit der Snowfalke instance verbinden.  
+**Data Warehouse:** Snowflake
+
+**Transformation Layer:** dbt
+
+**Business Intelligence (BI):** Metabase
+
+**Infrastructure as Code (IaC):** Terraform / Bash / Python
+
+---
+
+### Prerequisites
+
+This project has been developed and tested on macOS (M2). Ensure the following tools are installed:
+
+- **AWS CLI** (v2.21.2)
+- **Snowflake CLI** (`snowsql` v1.3.1)
+- **Terraform** (v1.10.1)
+- **Python** (v3.9.11 with dependencies from `requirements.txt`)
+- **dbt Cloud** (Cloud account and CLI; [installation instructions](https://docs.getdbt.com/docs/cloud/cloud-cli-installation))
+- **direnv** (v2.33.0 to manage environment variables from the `.env` file)
+
+---
+
+## Setup Guide
+
+### Step 1: Configure Environment Variables
+
+- Create an environment file by copying the example template:
+    
+    ```bash
+    mv .env.example .env
     ```
-    snowsql -a $SNOWFLAKE_ACCOUNT_IDENTIFIER -u $SNOWFLAKE_ADMIN
+    
+- Populate the `.env` file with the necessary variables as you progress through the setup.
+
+---
+
+### Step 2: AWS Account Setup and CLI Configuration
+
+1. **Create an AWS Account:**
+    - Register a new account via the AWS Console. If using AWS Organizations, create the account under your organization.
+    - Assign `AdministratorAccess` to your user for this new account via **IAM Identity Center**.
+2. **Set Up AWS CLI Access:**
+    - Copy the `AWS access portal URL` from **IAM Identity Center** into your `.env` file as `AWS_SSO_START_URL`.
+    - Log in via the CLI:During the process, you’ll specify a profile name, which must be saved in `.env` as `AWS_PROFILE`.
+        
+        ```bash
+        aws configure sso
+        ```
+3. **Verify AWS CLI Access:**
+    - Log into the AWS Management Console using `AWS_SSO_START_URL`.
+    - Check CLI access by running
+        
+        ```bash
+        aws sts get-caller-identity
+        ```
+        Ensure the `Account ID` matches the one in the AWS Console.
+        
+    - Save the account ID to your `.env` using:
+        
+        ```bash
+        make aws_get_account_id
+        ```
+4. **Prepare Terraform Access to AWS:**
+    
+    Run the following to create a Terraform service user with the required permissions:
+    
+    ```bash
+    make aws_create_terraform_user
     ```
+---
 
-Wenn die variable `SNOWFLAKE_PWD` existiert nimmt snowsql diese automatisch als passwort zum einloggen, ist sie nicht gesetzt, muss das passwort eingegeben werden.
+### Step 3: Snowflake Account Setup and CLI Configuration
 
-Alternative können wir diesen auch mit `make snowflake_test` die verbingung testen.
-Wenn alles gesetzt ist, können wir mit `make setup_snowflake` einen terraform Benutzer anlegen und diesem die nötige berechtigung zum einrichten unsere Snowflake instance geben.
+1. **Create a Snowflake Account:**
+    - Sign up for a 30-day trial. Ensure the instance is deployed on AWS and in the correct region.
+2. **Configure Snowflake CLI Access:**
+    - Update `.env` with the following values:
+        - `SNOWFLAKE_ACCOUNT_NAME` and `SNOWFLAKE_ORGANIZATION_NAME` (visible in the account details section)
+        - `SNOWFLAKE_ADMIN` (your Snowflake admin username)
+        - `SNOWFLAKE_PWD` (the password you set for the admin account).
+    - Reload your environment variables:
+        
+        ```bash
+        bash
+        Code kopieren
+        direnv reload
+        
+        ```
+        
+3. **Test Snowflake Connection:**
+    - Use the Snowflake CLI to connect:
+        
+        ```bash
+        bash
+        Code kopieren
+        snowsql -u $SNOWFLAKE_ADMIN
+        
+        ```
+        
+    - Alternatively, test the connection via:
+        
+        ```bash
+        bash
+        Code kopieren
+        make snowflake_test
+        
+        ```
+        
+4. **Set Up Snowflake for Terraform Access:**
+    
+    Run the following to create a service user and set up necessary permissions:
+    
+    ```bash
+    bash
+    Code kopieren
+    make setup_snowflake
+    
+    ```
+    
+    For SSH-based authentication, generate an SSH key for the Terraform user:
+    
+    ```bash
+    bash
+    Code kopieren
+    make snowflake_create_terraform_user
+    
+    ```
+    
 
-Nun legen wir auch für snowflake einen Terraform service user an, zur autentifiziereung nutzen wir hier einen ssh key.
+---
+
+### Step 4: Infrastructure Deployment via Terraform
+
+Run Terraform to deploy the infrastructure:
+
+```bash
+bash
+Code kopieren
+make aws_terraform
+
 ```
-make snowflake_create_Terraform_user
+
+Terraform will provision the following AWS components:
+
+- **S3 Bucket** (as a data lake)
+- **ECS Cluster** running Metabase in a container
+- **RDS PostgreSQL** instance (backend for Metabase)
+- Public and private subnets for the ECS and RDS components
+- Security groups for the RDS and ECS services
+
+Due to known limitations with the Snowflake Terraform module, Snowflake resources are managed using Python scripts:
+
+```bash
+bash
+Code kopieren
+make setup_snowflake
+
 ```
 
-oder die gesamte snowflake einrichtung at once mit `make setup_snowflake`
+---
 
+### Step 5: Load Test Data
 
-# Terraform
-Alle weiteren Schritte der Einrichtung werden nun von terrafrom übernommen.
-Folgende Komponennten werden eingerichtet:
-## Aws
-- S3 bucket als datalake
-- S3 Bucket als backend (Terrafrom logs und state)
-- Snowflake user um den Bucket zu lesen
+Run the following script to load test data into Snowflake:
 
+```bash
+bash
+Code kopieren
+make test_data
 
+```
 
+This script will:
 
+- Upload sample data to S3
+- Set up AWS-Snowflake data integration
+- Create staging layers, data formats, schemas, and tables
+- Copy the sample data into Snowflake
 
+---
 
+### Next Steps
 
-
+- Configure your dbt Cloud account and connect it to Snowflake.
+- Deploy the Metabase container with Terraform.
+- Expand the platform by adding more components and integrating additional tools.

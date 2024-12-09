@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Enable strict mode
+# Enable strict mode for better error handling
 set -euo pipefail
 trap 'echo "Error on line $LINENO"; exit 1' ERR
 
@@ -21,7 +21,7 @@ get_access_key_from_aws() {
         --output text
 }
 
-# Function to check if the Access Key exists in the local credentials file
+# Function to retrieve the Access Key ID from the local credentials file
 get_access_key_from_json() {
     if [ -f "$credentials_file" ]; then
         jq -r '.AccessKey.AccessKeyId' "$credentials_file"
@@ -30,7 +30,7 @@ get_access_key_from_json() {
     fi
 }
 
-# Function to check if the Access Key exists in the local credentials file
+# Function to retrieve the Secret Access Key from the local credentials file
 get_secret_access_key_from_json() {
     if [ -f "$credentials_file" ]; then
         jq -r '.AccessKey.SecretAccessKey' "$credentials_file"
@@ -39,11 +39,10 @@ get_secret_access_key_from_json() {
     fi
 }
 
-
 # Main Execution
 echo "** Checking if access key exists for Terraform user..."
 
-# Get Access Key IDs
+# Retrieve Access Key IDs from AWS and local file
 access_key_id_from_aws=$(get_access_key_from_aws)
 access_key_id_from_json=$(get_access_key_from_json)
 
@@ -55,11 +54,11 @@ update_env_file() {
     # Check if ACCESS_KEY_ID already exists in the .env file
     if grep -q "^ACCESS_KEY_ID=" "$env_file"; then
         echo "** Updating ACCESS_KEY_ID in .env..."
-        # Replace the old ACCESS_KEY_ID value with the new one
+        # Replace the existing ACCESS_KEY_ID value with the new one
         sed -i.bak "s|^ACCESS_KEY_ID=.*|ACCESS_KEY_ID=$access_key_id|" "$env_file"
     else
-        echo "Adding ACCESS_KEY_ID to .env..."
-        # If it doesn't exist, add it to the end of the file
+        echo "** Adding ACCESS_KEY_ID to .env..."
+        # If it doesn't exist, append it to the end of the file
         echo "ACCESS_KEY_ID=$access_key_id" >> "$env_file"
     fi
 }
@@ -67,39 +66,43 @@ update_env_file() {
 echo "** AWS Key ID: $access_key_id_from_aws"
 echo "** JSON Key ID: $access_key_id_from_json"
 
-# Compare and take action based on the keys
+# Compare and handle discrepancies between AWS and local keys
 if [[ "$access_key_id_from_aws" == "$access_key_id_from_json" && "$access_key_id_from_aws" != "None" ]]; then
     echo "** Access key is already set and matches the credentials file."
 elif [[ "$access_key_id_from_aws" != "None" ]]; then
-    echo "** Access key in AWS does not match credentials file. Recreating the key..."
+    echo "** Access key in AWS does not match the credentials file. Recreating the key..."
+    # Delete the existing key and remove the local credentials file
     aws iam delete-access-key --user-name "$AWS_TERRAFORM_USER" --access-key-id "$access_key_id_from_aws"
     rm -f "$credentials_file"
     echo "** Deleted existing access key and credentials file. Creating a new key..."
-    echo "** write to file $credentials_file"
+    # Create a new key and save it to the credentials file
     aws iam create-access-key --user-name "$AWS_TERRAFORM_USER" --output json > "$credentials_file"
     echo "** New access key created and saved to $credentials_file."
     update_env_file "$access_key_id_from_aws"
 else
     echo "** No existing access key found in AWS. Creating a new key..."
+    # Create a new access key
     aws iam create-access-key --user-name "$AWS_TERRAFORM_USER" --output json > "$credentials_file"
-    
     echo "** New access key created and saved to $credentials_file."
-    echo "**"
 fi
 
-# write access key id to .env 
+# Update the .env file with the new Access Key ID
 access_key_id_from_aws=$(get_access_key_from_aws)
 update_env_file "$access_key_id_from_aws"
 
-# write a file in the format
+# Write credentials and configuration to the AWS credentials and config files
 echo "** Writing credentials to ~/.aws/credentials..."
 
-echo "[terraform_user]
+cat <<EOF > ~/.aws/cred_terraform
+[terraform_user]
 aws_access_key_id = $(get_access_key_from_json)
-aws_secret_access_key = $(get_secret_access_key_from_json)" > ~/.aws/cred_terraform
+aws_secret_access_key = $(get_secret_access_key_from_json)
+EOF
 
-echo "[profile $AWS_TERRAFORM_USER]
+cat <<EOF > ~/.aws/config_terraform
+[profile $AWS_TERRAFORM_USER]
 region = $AWS_REGION
-output = json" >  ~/.aws/config_terraform
+output = json
+EOF
 
 echo "** Done."

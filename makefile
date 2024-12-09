@@ -156,7 +156,7 @@ terraform_destroy:
 
 ## Remove all resources (AWS + Snowflake)
 .PHONY: destroy_all
-destroy_all: aws_clean_up snowflake_clean_up
+destroy_all: terraform_destroy snowflake_clean_up aws_clean_up 
 	@echo "******************************************"
 	@echo "** All resources have been removed.     **"
 	@echo "******************************************"

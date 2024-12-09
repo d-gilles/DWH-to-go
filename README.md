@@ -111,29 +111,20 @@ This project has been developed and tested on macOS (M2). Ensure the following t
     - Reload your environment variables:
         
         ```bash
-        bash
-        Code kopieren
         direnv reload
-        
         ```
         
 3. **Test Snowflake Connection:**
     - Use the Snowflake CLI to connect:
         
         ```bash
-        bash
-        Code kopieren
         snowsql -u $SNOWFLAKE_ADMIN
-        
         ```
         
     - Alternatively, test the connection via:
         
         ```bash
-        bash
-        Code kopieren
         make snowflake_test
-        
         ```
         
 4. **Set Up Snowflake for Terraform Access:**
@@ -141,19 +132,13 @@ This project has been developed and tested on macOS (M2). Ensure the following t
     Run the following to create a service user and set up necessary permissions:
     
     ```bash
-    bash
-    Code kopieren
     make setup_snowflake
-    
     ```
     
     For SSH-based authentication, generate an SSH key for the Terraform user:
     
     ```bash
-    bash
-    Code kopieren
     make snowflake_create_terraform_user
-    
     ```
     
 
@@ -164,10 +149,7 @@ This project has been developed and tested on macOS (M2). Ensure the following t
 Run Terraform to deploy the infrastructure:
 
 ```bash
-bash
-Code kopieren
 make aws_terraform
-
 ```
 
 Terraform will provision the following AWS components:
@@ -181,10 +163,7 @@ Terraform will provision the following AWS components:
 Due to known limitations with the Snowflake Terraform module, Snowflake resources are managed using Python scripts:
 
 ```bash
-bash
-Code kopieren
 make setup_snowflake
-
 ```
 
 ---
@@ -194,10 +173,7 @@ make setup_snowflake
 Run the following script to load test data into Snowflake:
 
 ```bash
-bash
-Code kopieren
 make test_data
-
 ```
 
 This script will:

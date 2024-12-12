@@ -187,6 +187,6 @@ This script will:
 
 ### Next Steps
 
-- Configure your dbt Cloud account and connect it to Snowflake.
+- Configure dbt Cloud account and connect it to Snowflake.
 - Deploy the Metabase container with Terraform.
-- Expand the platform by adding more components and integrating additional tools.
+

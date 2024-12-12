@@ -4,7 +4,7 @@ A "one-click" data platform.
 
 ### Introduction
 
-As I’ve delved into data engineering, I’ve experimented with various data warehouse solutions and implemented several projects. A recurring challenge, however, has always been **costs**.
+As I’ve delved into data engineering, I’ve experimented with various data warehouse solutions and implemented several projects. A recurring challenge in private projects, however, has always been **costs**.
 
 ### The Idea
 

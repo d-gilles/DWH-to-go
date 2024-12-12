@@ -1,4 +1,4 @@
-# DWH to go
+# DWH to go [WIP]
 
 A "one-click" data platform.
 
